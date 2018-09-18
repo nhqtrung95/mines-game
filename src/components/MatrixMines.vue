@@ -2,7 +2,15 @@
   <table class="matrix-mines">
     <tbody>
       <tr v-for="rowIndex in 8" :key="rowIndex">
-        <MatrixElement v-for="columnIndex in 8" :key="columnIndex" :row-index=(rowIndex-1) :column-index=(columnIndex-1) :weight=matrixMines[rowIndex-1][columnIndex-1] @clicked="openElement"/>
+        <MatrixElement 
+            v-for="columnIndex in 8" :key="columnIndex" 
+            :row-index=(rowIndex-1) 
+            :column-index=(columnIndex-1) 
+            :weight=matrixMines[rowIndex-1][columnIndex-1]
+            :is-opened=isOpenMatrixMines[rowIndex-1][columnIndex-1]
+            @clickOnWeightElement="openElement"
+            @clickOnMineElement="openElement"
+            @clickOnBlankElement="openBlankArea" />
       </tr>
     </tbody>
   </table>
@@ -20,12 +28,29 @@ export default {
     return {
       totalMines: 10,
       matrixMines: this.initalMatrixMines().matrixMines,
-      positionMines: this.initalMatrixMines().positionMines
+      positionMines: this.initalMatrixMines().positionMines,
+      isOpenMatrixMines: this.initalMatrixMines().isOpenMatrixMines
     };
   },
   methods: {
+    openBlankArea: function(rowIndex, columnIndex) {
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          let xi = rowIndex + i;
+          let yj = columnIndex + j;
+          if (xi >= 0 && xi < this.matrixMines.length && yj >= 0 && yj < this.matrixMines.length) {
+            if (this.isOpenMatrixMines[xi][yj] == 0) {
+              this.openElement(xi, yj)
+              if (this.matrixMines[xi][yj] === 0) {
+                this.openBlankArea(xi, yj);
+              }
+            }
+          }
+        }
+      }
+    },
     openElement: function(rowIndex, columnIndex) {
-      console.log(rowIndex + ' ' + columnIndex);
+      this.isOpenMatrixMines[rowIndex].splice(columnIndex, 1 , 1);
     },
     pushMines: function() {},
     checkElementIsMine: function(rowIndex, columnIndex) {
@@ -51,12 +76,16 @@ export default {
         { x: 7, y: 6 }
       ];
       let matrixMines = [];
+      let isOpenMatrixMines = [];
       for (let i = 0; i <= 7; i++) {
-        let row = [];
+        let matrixMinesRow = [];
+        let isOpenMatrixMinesRow = [];
         for (let j = 0; j <= 7; j++) {
-          row.push(0);
+          matrixMinesRow.push(0);
+          isOpenMatrixMinesRow.push(0);
         }
-        matrixMines.push(row);
+        matrixMines.push(matrixMinesRow);
+        isOpenMatrixMines.push(isOpenMatrixMinesRow);
       }
       for (let i = 0; i < positionMines.length; i++) {
         let x = positionMines[i].x;
@@ -66,7 +95,8 @@ export default {
       this.calculateElementWeight(positionMines, matrixMines);
       return {
         matrixMines,
-        positionMines
+        positionMines,
+        isOpenMatrixMines
       };
     },
     updateRelateElement: function(x, y, matrixMines) {

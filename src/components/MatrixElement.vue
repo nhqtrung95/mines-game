@@ -1,6 +1,6 @@
 <template>
     <td @click="handleClickEvent" :class="{'blank-element': this.weight == 0}">
-      <template v-if="this.isClicked">
+      <template v-if="this.isOpened == 1">
         <template v-if="this.checkMine()"><i class="fas fa-atom"></i></template>
         <template v-if="this.weight > 0">{{this.weight}}</template>
       </template>
@@ -13,20 +13,19 @@ export default {
     props: [
       'weight',
       'rowIndex',
-      'columnIndex'
+      'columnIndex',
+      'isOpened'
     ],
-    data () {
-      return {
-        isClicked: false
-      }
-    },
     methods: {
       handleClickEvent() {
         if (this.weight === 0) {
-          this.$emit('clickOnBlankElement', this.rowIndex, this.columnIndex)
+          this.$emit('clickOnBlankElement', this.rowIndex, this.columnIndex);
+        } else if (this.weight === -1) {
+          this.$emit('clickOnMineElement', this.rowIndex, this.columnIndex);
+        } else {
+          this.$emit('clickOnWeightElement', this.rowIndex, this.columnIndex);
         }
-        this.isClicked = true;
-        this.$emit('clicked', this.rowIndex, this.columnIndex);
+
       },
       checkMine() {
         if (this.weight === -1) {
